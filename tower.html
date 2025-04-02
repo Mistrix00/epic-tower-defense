@@ -1294,7 +1294,6 @@
                 localStorage.setItem('tdHighScore', highScore);
             }
             document.getElementById("high-score-display").textContent = highScore;
-            document.getElementById("high-score-info").textContent = highScore;
         }
         
         function spawnWave() {
@@ -1639,7 +1638,6 @@
                 infoContent.style.display = "none";
             } else {
                 infoContent.style.display = "block";
-                document.getElementById("high-score-info").textContent = localStorage.getItem('tdHighScore') || 0;
             }
         }
         
@@ -1685,7 +1683,6 @@
         
         // Initialize high score display
         document.getElementById("high-score-display").textContent = highScore;
-        document.getElementById("high-score-info").textContent = highScore;
     </script>
 </body>
 </html>
