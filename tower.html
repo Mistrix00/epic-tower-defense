@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epic Tower Defense | HW Development</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2196F3;
+            --accent: #FFC107;
+            --dark: #1A1A1A;
+            --light: #F5F5F5;
+            --danger: #F44336;
+            --tower: #9C27B0;
+            --enemy: #F44336;
+            --projectile: #FFEB3B;
+            --path: #795548;
+            --discord: #5865F2;
+            --itchio: #FA5C5C;
+            --grass: #4CAF50;
+            --tower-range: rgba(156, 39, 176, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--light);
+            font-family: 'Rubik', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Main Menu Container */
+        #main-menu-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .content-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        #main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            position: relative;
+            max-width: 600px;
+            width: 100%;
+            transition: all 0.5s ease;
+        }
+        
+        #news-panel {
+            width: 300px;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            max-height: 80vh;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) var(--dark);
+        }
+        
+        #news-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #news-panel::-webkit-scrollbar-track {
+            background: var(--dark);
+            border-radius: 10px;
+        }
+        
+        #news-panel::-webkit-scrollbar-thumb {
+            background-color: var(--accent);
+            border-radius: 10px;
+        }
+        
+        #news-panel h2 {
+            color: var(--accent);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+        
+        .news-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--secondary);
+            transition: transform 0.2s ease;
+        }
+        
+        .news-item:hover {
+            transform: translateY(-3px);
+        }
+        
+        .news-item h3 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .news-item p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+        
+        .news-date {
+            font-size: 0.7rem;
+            color: var(--secondary);
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        #main-menu h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 3px 3px 0 var(--secondary);
+            letter-spacing: 2px;
+            animation: titleGlow 2s infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 5px var(--secondary); }
+            100% { text-shadow: 0 0 20px var(--secondary), 0 0 10px var(--accent); }
+        }
+        
+        #main-menu p {
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .menu-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 50px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 250px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            font-family: 'Press Start 2P', cursive;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .menu-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+            transition: all 0.3s;
+        }
+        
+        .menu-btn:hover::after {
+            left: 100%;
+        }
+        
+        .menu-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .menu-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        #game-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1000px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        #game-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            width: 100%;
+        }
+        
+        canvas {
+            background: #222;
+            display: block;
+            border: 5px solid var(--accent);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        #sidebar {
+            width: 250px;
+            padding: 20px;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-family: 'Press Start 2P', cursive;
+        }
+        
+        #sidebar h2 {
+            color: var(--accent);
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        
+        #stats {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+        }
+        
+        #stats div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        #stats span:last-child {
+            color: var(--accent);
+        }
+        
+        .control-btn {
+            background: var(--secondary);
+            margin-top: 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            background: #1E88E5;
+            transform: translateY(-2px);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0);
+        }
+        
+        #tower-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+        
+        #tower-info h3 {
+            color: var(--tower);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-radius: 10px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        #game-over h2 {
+            font-size: 2.5rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+            font-family: 'Press Start 2P', cursive;
+            text-shadow: 3px 3px 0 #000;
+            animation: pulse 0.5s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        
+        #final-score {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--accent);
+        }
+        
+        .game-btn {
+            background: var(--primary);
+            padding: 12px 25px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            font-family: 'Press Start 2P', cursive;
+        }
+        
+        .game-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        #wave-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            color: var(--accent);
+            display: none;
+            z-index: 50;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        #info-box {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(26, 26, 26, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            max-width: 250px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Press Start 2P', cursive;
+        }
+        
+        #info-box:hover {
+            background: rgba(26, 26, 26, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        #info-content {
+            display: none;
+            position: fixed;
+            bottom: 50px;
+            right: 10px;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 250px;
+            font-size: 0.7rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-family: 'Rubik', sans-serif;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        #info-content h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            text-align: center;
+            font-family: 'Press Start 2P', cursive;
+        }
+        
+        #info-content p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .close-info {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: var(--light);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: 'Press Start 2P', cursive;
+        }
+        
+        /* Social Buttons Styles */
+        .social-btn {
+            position: fixed;
+            bottom: 10px;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50px;
+            font-family: 'Rubik', sans-serif;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .social-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        #discord-btn {
+            left: 10px;
+            background: var(--discord);
+        }
+        
+        #discord-btn:hover {
+            background: #4752C4;
+        }
+        
+        #itchio-btn {
+            left: 150px;
+            background: var(--itchio);
+        }
+        
+        #itchio-btn:hover {
+            background: #E84C4C;
+        }
+        
+        .social-icon {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* New back-to-menu button style */
+        .menu-btn-small {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 50px;
+            padding: 8px 15px;
+            margin-top: 15px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .menu-btn-small:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Tower range preview */
+        #tower-preview {
+            position: absolute;
+            pointer-events: none;
+            display: none;
+            border-radius: 50%;
+            background-color: var(--tower-range);
+            border: 2px dashed var(--tower);
+            z-index: 5;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            z-index: 20;
+            font-family: 'Rubik', sans-serif;
+            max-width: 200px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        /* Mobile controls */
+        #mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px;
+            z-index: 30;
+        }
+        
+        .mobile-btn {
+            background: rgba(33, 150, 243, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .mobile-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 900px) {
+            .content-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #news-panel {
+                width: 100%;
+                max-width: 600px;
+                max-height: 300px;
+                order: -1;
+            }
+            
+            #main-menu h1 {
+                font-size: 1.8rem;
+            }
+            
+            #info-box, #info-content {
+                max-width: 200px;
+                font-size: 0.6rem;
+            }
+            
+            .social-btn {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+            
+            #itchio-btn {
+                left: 120px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #game-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #sidebar {
+                width: 100%;
+                max-width: 600px;
+                margin-top: 20px;
+            }
+            
+            canvas {
+                width: 100%;
+                height: auto;
+                max-height: 60vh;
+            }
+            
+            #mobile-controls {
+                display: flex;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #main-menu h1 {
+                font-size: 1.5rem;
+            }
+            
+            .menu-btn {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            
+            #discord-btn, #itchio-btn {
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+            
+            #itchio-btn {
+                left: 100px;
+            }
+            
+            .mobile-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Menu with News Panel -->
+    <div id="main-menu-container">
+        <div class="content-wrapper">
+            <div id="main-menu">
+                <h1>EPIC TOWER DEFENSE</h1>
+                <p>Defend your kingdom against endless waves of enemies!</p>
+                <button class="menu-btn" onclick="startGame()">START GAME</button>
+                <button class="menu-btn" onclick="showInstructions()">HOW TO PLAY</button>
+                <button class="menu-btn" onclick="window.location.href = 'index.html'">BACK TO HUB</button>
+            </div>
+
+            <div id="news-panel">
+                <h2>LATEST NEWS</h2>
+                <div class="news-item">
+                    <span class="news-date">April 2, 2025</span>
+                    <h3>New Game Released!</h3>
+                    <p>Check out our brand new Epic Tower Defense game with exciting new features and levels!</p>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">April 1, 2025</span>
+                    <h3>Update Patch Notes</h3>
+                    <p>Version 1.0.0 is now live with bug fixes and performance improvements.</p>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">May 28, 2025</span>
+                    <h3>Server Maintenance</h3>
+                    <p>We'll be performing maintenance on our servers this weekend. Expect some downtime.</p>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">May 28, 2025</span>
+                    <h3>New Owner</h3>
+                    <p>Since May 28 this domain is taken over by HW Development!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Buttons (shown in main menu) -->
+    <a id="discord-btn" class="social-btn" href="https://discord.gg/8CYKQMz8" target="_blank">
+        <svg class="social-icon" viewBox="0 0 127.14 96.36" fill="currentColor">
+            <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+        </svg>
+        Discord
+    </a>
+
+    <a id="itchio-btn" class="social-btn" href="https://hw-development.itch.io" target="_blank">
+        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21.3 13.6c0 1.2-.7 2.3-1.8 2.8-1 .5-2.2.3-3-.5l-2.2-2.2c-.4-.4-.4-1 0-1.4.4-.4 1-.4 1.4 0l2.2 2.2c.3.3.8.3 1.1.1.3-.2.5-.6.4-1-.1-.4-.5-.7-.9-.7H3.5c-.6 0-1-.4-1-1s.4-1 1-1h16.8c1.3 0 2.5.8 3 2 .5 1.2.3 2.5-.5 3.4-.8.8-2 1.1-3.1.8-1.1-.3-2-1.2-2.3-2.3-.3-1.1 0-2.3.8-3.1l2.2-2.2c.4-.4 1-.4 1.4 0.4.4.4 1 0 1.4l-2.2 2.2c-.8.8-.9 2-.4 3z"/>
+        </svg>
+        Itch.io
+    </a>
+
+    <!-- Game Container (hidden initially) -->
+    <div id="game-container">
+        <div id="tower-preview"></div>
+        <div id="wave-indicator">WAVE INCOMING!</div>
+        <div id="game-wrapper">
+            <canvas id="gameCanvas" width="700" height="500"></canvas>
+            <div id="sidebar">
+                <h2>GAME STATS</h2>
+                <div id="stats">
+                    <div>
+                        <span>Money:</span>
+                        <span id="money">250</span>
+                    </div>
+                    <div>
+                        <span>Score:</span>
+                        <span id="score">0</span>
+                    </div>
+                    <div>
+                        <span>High Score:</span>
+                        <span id="high-score-display">0</span>
+                    </div>
+                    <div>
+                        <span>Wave:</span>
+                        <span id="wave">1</span>
+                    </div>
+                    <div>
+                        <span>Enemies:</span>
+                        <span id="enemies">0</span>
+                    </div>
+                    <div>
+                        <span>Lives:</span>
+                        <span id="lives">10</span>
+                    </div>
+                </div>
+                
+                <div id="tower-info">
+                    <h3>TOWER CONTROLS</h3>
+                    <p>Click empty space to build tower (Cost: 50)</p>
+                    <p>Click on tower to upgrade (Cost: 50)</p>
+                    <p>Tower range increases with level</p>
+                </div>
+                
+                <button class="control-btn" onclick="startNextWave()">START NEXT WAVE</button>
+                <button class="control-btn" onclick="restartGame()">RESTART GAME</button>
+                <button class="control-btn" onclick="returnToMenu()">MAIN MENU</button>
+            </div>
+        </div>
+        <div id="game-over">
+            <h2>GAME OVER!</h2>
+            <div id="final-score">Score: 0</div>
+            <div>
+                <button class="game-btn" onclick="restartGame()">PLAY AGAIN</button>
+                <button class="game-btn" onclick="returnToMenu()">MAIN MENU</button>
+                <button class="game-btn" onclick="window.location.href = 'index.html'">BACK TO HUB</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile controls -->
+    <div id="mobile-controls">
+        <button class="mobile-btn" onclick="startNextWave()">⚡</button>
+        <button class="mobile-btn" onclick="restartGame()">🔄</button>
+        <button class="mobile-btn" onclick="returnToMenu()">🏠</button>
+    </div>
+
+    <!-- Info box -->
+    <div id="info-box" onclick="toggleInfo()">About</div>
+    <div id="info-content">
+        <button class="close-info" onclick="toggleInfo()">×</button>
+        <h3>Developer Info</h3>
+        <p>----------------------------------------</p>
+        <p><strong>Version:</strong> 1.1.0</p>
+        <p><strong>Author:</strong> HW Development™</p>
+        <p><strong>Developer:</strong> Henk W.</p>
+        <p><strong>Release Date:</strong> April 2025</p>
+        <p>A tower defense game built with HTML5 Canvas and JavaScript</p>
+        <p>----------------------------------------</p>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip"></div>
+
+    <script>
+        // Game elements
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const moneyEl = document.getElementById("money");
+        const scoreEl = document.getElementById("score");
+        const waveEl = document.getElementById("wave");
+        const enemiesEl = document.getElementById("enemies");
+        const livesEl = document.getElementById("lives");
+        const finalScoreEl = document.getElementById("final-score");
+        const gameOverScreen = document.getElementById("game-over");
+        const waveIndicator = document.getElementById("wave-indicator");
+        const mainMenuContainer = document.getElementById("main-menu-container");
+        const discordBtn = document.getElementById("discord-btn");
+        const itchioBtn = document.getElementById("itchio-btn");
+        const newsPanel = document.getElementById("news-panel");
+        const towerPreview = document.getElementById("tower-preview");
+        const tooltip = document.querySelector(".tooltip");
+        
+        // Game variables
+        const gridSize = 40;
+        const path = [
+            {x: -gridSize, y: 3 * gridSize},
+            {x: 0, y: 3 * gridSize}, {x: gridSize, y: 3 * gridSize},
+            {x: 2 * gridSize, y: 3 * gridSize}, {x: 3 * gridSize, y: 3 * gridSize},
+            {x: 3 * gridSize, y: 4 * gridSize}, {x: 3 * gridSize, y: 5 * gridSize},
+            {x: 4 * gridSize, y: 5 * gridSize}, {x: 5 * gridSize, y: 5 * gridSize},
+            {x: 6 * gridSize, y: 5 * gridSize}, {x: 7 * gridSize, y: 5 * gridSize},
+            {x: 7 * gridSize, y: 6 * gridSize}, {x: 7 * gridSize, y: 7 * gridSize},
+            {x: 8 * gridSize, y: 7 * gridSize}, {x: 9 * gridSize, y: 7 * gridSize},
+            {x: 10 * gridSize, y: 7 * gridSize}, {x: 11 * gridSize, y: 7 * gridSize},
+            {x: 12 * gridSize, y: 7 * gridSize}, {x: 13 * gridSize, y: 7 * gridSize},
+            {x: 14 * gridSize, y: 7 * gridSize}, {x: 15 * gridSize, y: 7 * gridSize},
+            {x: 16 * gridSize, y: 7 * gridSize}, {x: 17 * gridSize, y: 7 * gridSize},
+            {x: canvas.width + gridSize, y: 7 * gridSize}
+        ];
+        
+        let towers = [], enemies = [], projectiles = [];
+        let money = 250, score = 0, wave = 1, lives = 10;
+        let gameOver = false;
+        let animationId;
+        let waveInProgress = false;
+        let gameStarted = false;
+        let highScore = localStorage.getItem('tdHighScore') || 0;
+        let selectedTower = null;
+        let mouseX = 0, mouseY = 0;
+        let isTouchDevice = false;
+        
+        // Tower class
+        class Tower {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.range = 100;
+                this.fireRate = 60;
+                this.cooldown = 0;
+                this.level = 1;
+                this.damage = 1;
+                this.color = '#9C27B0';
+                this.upgradeCost = 50;
+                this.type = 'basic';
+            }
+            
+            draw() {
+                // Tower base
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x + gridSize/2, this.y + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Tower level indicator
+                ctx.fillStyle = '#FFF';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.level.toString(), this.x + gridSize/2, this.y + gridSize/2);
+                
+                // Range indicator (when selected)
+                if (this === selectedTower) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(this.x + gridSize/2, this.y + gridSize/2, this.range, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+            
+            update() {
+                if (this.cooldown > 0) {
+                    this.cooldown--;
+                } else {
+                    // Find closest enemy in range
+                    let closestEnemy = null;
+                    let minDist = Infinity;
+                    
+                    enemies.forEach(enemy => {
+                        const dx = enemy.x - (this.x + gridSize/2);
+                        const dy = enemy.y - (this.y + gridSize/2);
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < this.range && dist < minDist) {
+                            closestEnemy = enemy;
+                            minDist = dist;
+                        }
+                    });
+                    
+                    if (closestEnemy) {
+                        // Fire projectile
+                        projectiles.push(new Projectile(
+                            this.x + gridSize/2, 
+                            this.y + gridSize/2, 
+                            closestEnemy,
+                            this.damage,
+                            this.type
+                        ));
+                        this.cooldown = this.fireRate;
+                        
+                        // Tower firing effect
+                        createParticles(this.x + gridSize/2, this.y + gridSize/2, 3, '#FF5722');
+                    }
+                }
+            }
+            
+            upgrade() {
+                const cost = this.upgradeCost;
+                if (money >= cost) {
+                    money -= cost;
+                    this.level++;
+                    this.range += 20;
+                    this.fireRate = Math.max(20, this.fireRate - 5);
+                    this.damage += 0.5;
+                    this.upgradeCost += 20;
+                    this.color = `hsl(${280 + this.level * 10}, 70%, 50%)`;
+                    updateUI();
+                    createParticles(this.x + gridSize/2, this.y + gridSize/2, 10, '#FFC107');
+                    
+                    // Show upgrade message
+                    showTooltip(`Tower upgraded to level ${this.level}`, this.x + gridSize/2, this.y - 20);
+                    return true;
+                } else {
+                    showTooltip("Not enough money!", this.x + gridSize/2, this.y - 20);
+                    return false;
+                }
+            }
+            
+            getUpgradeInfo() {
+                return `Level: ${this.level}\nDamage: ${this.damage}\nRange: ${Math.floor(this.range)}\nUpgrade Cost: ${this.upgradeCost}`;
+            }
+        }
+        
+        // Enemy class
+        class Enemy {
+            constructor() {
+                this.pathIndex = 0;
+                this.x = path[0].x;
+                this.y = path[0].y;
+                this.speed = 1 + wave * 0.1;
+                this.health = 2 + wave * 1.5;
+                this.maxHealth = this.health;
+                this.size = gridSize * 0.8;
+                const enemyType = Math.random();
+                if (enemyType > 0.95) {
+                    this.type = 'boss';
+                    this.health *= 3;
+                    this.maxHealth = this.health;
+                    this.speed *= 0.7;
+                    this.color = '#9C27B0';
+                    this.value = 150;
+                } else if (enemyType > 0.85) {
+                    this.type = 'armored';
+                    this.health *= 1.5;
+                    this.maxHealth = this.health;
+                    this.color = '#795548';
+                    this.value = 60;
+                } else {
+                    this.type = 'normal';
+                    this.color = '#F44336';
+                    this.value = 40;
+                }
+            }
+            
+            draw() {
+                // Save the current context state
+                ctx.save();
+                
+                // Move to enemy position
+                ctx.translate(this.x, this.y);
+                
+                // Draw enemy body based on type
+                if (this.type === 'boss') {
+                    // Boss enemy
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Crown
+                    ctx.fillStyle = '#FFC107';
+                    ctx.beginPath();
+                    ctx.moveTo(-this.size/2, -this.size/4);
+                    ctx.lineTo(-this.size/3, -this.size/2);
+                    ctx.lineTo(0, -this.size/3);
+                    ctx.lineTo(this.size/3, -this.size/2);
+                    ctx.lineTo(this.size/2, -this.size/4);
+                    ctx.lineTo(this.size/2, -this.size/8);
+                    ctx.lineTo(-this.size/2, -this.size/8);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Angry face
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(-this.size/5, 0, this.size/8, 0, Math.PI * 2);
+                    ctx.arc(this.size/5, 0, this.size/8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath();
+                    ctx.arc(-this.size/5, 0, this.size/16, 0, Math.PI * 2);
+                    ctx.arc(this.size/5, 0, this.size/16, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Angry mouth
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, this.size/8, this.size/6, 0.2 * Math.PI, 0.8 * Math.PI, true);
+                    ctx.stroke();
+                } else {
+                    // Normal or armored enemy
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    
+                    // Create a more complex shape (monster-like)
+                    ctx.moveTo(0, -this.size/3); // Top center
+                    ctx.lineTo(this.size/3, -this.size/6); // Right top
+                    ctx.lineTo(this.size/2, this.size/6); // Right middle
+                    ctx.lineTo(this.size/3, this.size/2); // Right bottom
+                    ctx.lineTo(-this.size/3, this.size/2); // Left bottom
+                    ctx.lineTo(-this.size/2, this.size/6); // Left middle
+                    ctx.lineTo(-this.size/3, -this.size/6); // Left top
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Draw eyes
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(-this.size/6, -this.size/8, this.size/10, 0, Math.PI * 2);
+                    ctx.arc(this.size/6, -this.size/8, this.size/10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw pupils
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath();
+                    ctx.arc(-this.size/6, -this.size/8, this.size/20, 0, Math.PI * 2);
+                    ctx.arc(this.size/6, -this.size/8, this.size/20, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw angry eyebrows
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.size/4, -this.size/5);
+                    ctx.lineTo(-this.size/8, -this.size/6);
+                    ctx.moveTo(this.size/4, -this.size/5);
+                    ctx.lineTo(this.size/8, -this.size/6);
+                    ctx.stroke();
+                    
+                    // Draw mouth
+                    ctx.beginPath();
+                    ctx.arc(0, this.size/8, this.size/6, 0.1 * Math.PI, 0.9 * Math.PI);
+                    ctx.stroke();
+                }
+                
+                // Restore context state
+                ctx.restore();
+                
+                // Health bar
+                const healthWidth = this.size;
+                const healthHeight = 5;
+                const healthX = this.x - healthWidth/2;
+                const healthY = this.y - this.size/2 - 15;
+                
+                ctx.fillStyle = '#F44336';
+                ctx.fillRect(healthX, healthY, healthWidth, healthHeight);
+                
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(healthX, healthY, healthWidth * (this.health / this.maxHealth), healthHeight);
+                
+                // Show enemy type above health bar for special enemies
+                if (this.type !== 'normal') {
+                    ctx.fillStyle = 'white';
+                    ctx.font = '10px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.type.toUpperCase(), this.x, healthY - 5);
+                }
+            }
+            
+            update() {
+                const target = path[this.pathIndex];
+                const dx = target.x - this.x;
+                const dy = target.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < this.speed) {
+                    this.x = target.x;
+                    this.y = target.y;
+                    this.pathIndex++;
+                    
+                    // Reached end of path
+                    if (this.pathIndex >= path.length) {
+                        takeDamage(this.type === 'boss' ? 3 : 1);
+                        enemies.splice(enemies.indexOf(this), 1);
+                    }
+                } else {
+                    this.x += (dx / dist) * this.speed;
+                    this.y += (dy / dist) * this.speed;
+                }
+            }
+        }
+        
+        // Projectile class
+        class Projectile {
+            constructor(x, y, target, damage, type = 'basic') {
+                this.x = x;
+                this.y = y;
+                this.target = target;
+                this.speed = 5;
+                this.damage = damage;
+                this.size = 5;
+                this.type = type;
+                
+                // Different projectile types
+                switch(type) {
+                    case 'basic':
+                        this.color = '#FFEB3B';
+                        break;
+                    case 'fire':
+                        this.color = '#FF5722';
+                        this.damage *= 1.2;
+                        break;
+                    case 'ice':
+                        this.color = '#2196F3';
+                        this.speed = 7;
+                        break;
+                    default:
+                        this.color = '#FFEB3B';
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add effects for special projectiles
+                if (this.type === 'fire') {
+                    ctx.fillStyle = 'rgba(255, 87, 34, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.type === 'ice') {
+                    ctx.strokeStyle = 'rgba(33, 150, 243, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * 1.2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+            
+            update() {
+                const dx = this.target.x - this.x;
+                const dy = this.target.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < this.speed) {
+                    // Hit target
+                    this.target.health -= this.damage;
+                    
+                    if (this.target.health <= 0) {
+                        enemies.splice(enemies.indexOf(this.target), 1);
+                        score += this.target.value;
+                        money += this.target.value;
+                        createParticles(this.target.x, this.target.y, 10, '#FFC107');
+                        
+                        // Special effect for boss enemies
+                        if (this.target.type === 'boss') {
+                            for (let i = 0; i < 20; i++) {
+                                setTimeout(() => {
+                                    createParticles(
+                                        this.target.x, 
+                                        this.target.y, 
+                                        5, 
+                                        ['#FF5722', '#FFC107', '#F44336'][Math.floor(Math.random() * 3)]
+                                    );
+                                }, i * 50);
+                            }
+                        }
+                    } else {
+                        createParticles(this.target.x, this.target.y, 3, '#FF5722');
+                        
+                        // Slow effect for ice projectiles
+                        if (this.type === 'ice') {
+                            this.target.speed = Math.max(0.5, this.target.speed * 0.9);
+                        }
+                    }
+                    
+                    projectiles.splice(projectiles.indexOf(this), 1);
+                } else {
+                    this.x += (dx / dist) * this.speed;
+                    this.y += (dy / dist) * this.speed;
+                }
+            }
+        }
+        
+        // Game functions
+        function startGame() {
+            mainMenuContainer.style.display = "none";
+            discordBtn.style.display = "none";
+            itchioBtn.style.display = "none";
+            newsPanel.style.display = "none";
+            
+            document.getElementById("game-container").style.display = "flex";
+            gameStarted = true;
+            resetGame();
+            
+            // Check for touch device
+            isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        }
+        
+        function resetGame() {
+            // Reset game state
+            towers = [];
+            enemies = [];
+            projectiles = [];
+            money = 250;
+            score = 0;
+            wave = 1;
+            lives = 10;
+            gameOver = false;
+            waveInProgress = false;
+            selectedTower = null;
+            
+            // Update UI
+            updateUI();
+            gameOverScreen.style.display = "none";
+            
+            // Start game loop
+            if (animationId) cancelAnimationFrame(animationId);
+            draw();
+            updateGame();
+        }
+        
+        function restartGame() {
+            resetGame();
+        }
+        
+        function returnToMenu() {
+            mainMenuContainer.style.display = "flex";
+            discordBtn.style.display = "flex";
+            itchioBtn.style.display = "flex";
+            newsPanel.style.display = "block";
+            
+            document.getElementById("game-container").style.display = "none";
+            gameStarted = false;
+            if (animationId) cancelAnimationFrame(animationId);
+        }
+        
+        function updateUI() {
+            moneyEl.textContent = money;
+            scoreEl.textContent = score;
+            waveEl.textContent = wave;
+            enemiesEl.textContent = enemies.length;
+            livesEl.textContent = lives;
+            
+            // Update high score display if current score is higher
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('tdHighScore', highScore);
+            }
+            document.getElementById("high-score-display").textContent = highScore;
+            document.getElementById("high-score-info").textContent = highScore;
+        }
+        
+        function spawnWave() {
+            if (waveInProgress) return;
+            
+            waveInProgress = true;
+            showWaveIndicator();
+            
+            const enemyCount = 3 + Math.floor(wave * 1.5);
+            const spawnInterval = 500 - Math.min(400, wave * 20);
+            
+            for (let i = 0; i < enemyCount; i++) {
+                setTimeout(() => {
+                    enemies.push(new Enemy());
+                    updateUI();
+                    
+                    if (i === enemyCount - 1) {
+                        setTimeout(() => {
+                            waveInProgress = false;
+                            hideWaveIndicator();
+                        }, 2000);
+                    }
+                }, i * spawnInterval);
+            }
+            
+            wave++;
+            updateUI();
+        }
+        
+        function startNextWave() {
+            if (!waveInProgress && enemies.length === 0) {
+                spawnWave();
+            } else if (waveInProgress) {
+                showTooltip("Wave already in progress!", canvas.width/2, 50);
+            } else {
+                showTooltip("Finish current enemies first!", canvas.width/2, 50);
+            }
+        }
+        
+        function takeDamage(amount = 1) {
+            lives -= amount;
+            updateUI();
+            
+            // Screen shake effect
+            canvas.style.transform = 'translateX(10px)';
+            setTimeout(() => canvas.style.transform = 'translateX(-10px)', 50);
+            setTimeout(() => canvas.style.transform = 'translateX(0)', 100);
+            
+            // Show damage indicator
+            showTooltip(`-${amount} Life${amount > 1 ? 's' : ''}`, canvas.width - 50, 50);
+            
+            if (lives <= 0) {
+                endGame();
+            }
+        }
+        
+        function endGame() {
+            gameOver = true;
+            cancelAnimationFrame(animationId);
+            
+            finalScoreEl.textContent = `Score: ${score}`;
+            gameOverScreen.style.display = "flex";
+            
+            // Explosion effect
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    createParticles(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height,
+                        5,
+                        ['#FF5722', '#FFC107', '#F44336'][Math.floor(Math.random() * 3)]
+                    );
+                }, i * 50);
+            }
+        }
+        
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grass background
+            ctx.fillStyle = '#2E7D32';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid pattern
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw path
+            ctx.fillStyle = '#5D4037';
+            for (let i = 1; i < path.length - 1; i++) {
+                ctx.fillRect(path[i].x - gridSize/2, path[i].y - gridSize/2, gridSize, gridSize);
+            }
+            
+            // Draw start and end markers
+            ctx.fillStyle = '#F44336';
+            ctx.fillRect(path[0].x - gridSize/2, path[0].y - gridSize/2, gridSize, gridSize);
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(path[path.length-1].x - gridSize/2, path[path.length-1].y - gridSize/2, gridSize, gridSize);
+            
+            // Draw text on start and end markers
+            ctx.fillStyle = 'white';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('START', path[0].x, path[0].y);
+            ctx.fillText('END', path[path.length-1].x, path[path.length-1].y);
+            
+            // Draw enemies
+            enemies.forEach(enemy => enemy.draw());
+            
+            // Draw towers
+            towers.forEach(tower => tower.draw());
+            
+            // Draw projectiles
+            projectiles.forEach(projectile => projectile.draw());
+            
+            // Draw hover effect for tower placement
+            if (!selectedTower && money >= 50) {
+                const gridX = Math.floor(mouseX / gridSize) * gridSize;
+                const gridY = Math.floor(mouseY / gridSize) * gridSize;
+                
+                // Check if position is valid
+                const onPath = path.some(p => 
+                    Math.abs(p.x - (gridX + gridSize/2)) < gridSize/2 && 
+                    Math.abs(p.y - (gridY + gridSize/2)) < gridSize/2
+                );
+                
+                const towerHere = towers.some(t => 
+                    gridX === t.x && gridY === t.y
+                );
+                
+                if (!onPath && !towerHere) {
+                    ctx.fillStyle = 'rgba(33, 150, 243, 0.3)';
+                    ctx.fillRect(gridX, gridY, gridSize, gridSize);
+                }
+            }
+        }
+        
+        function updateGame() {
+            if (gameOver) return;
+            
+            // Update game objects
+            towers.forEach(tower => tower.update());
+            enemies.forEach(enemy => enemy.update());
+            projectiles.forEach(projectile => projectile.update());
+            
+            // Auto-start next wave if no enemies left
+            if (!waveInProgress && enemies.length === 0 && wave > 1) {
+                setTimeout(() => {
+                    if (!waveInProgress && enemies.length === 0) {
+                        spawnWave();
+                    }
+                }, 2000);
+            }
+            
+            draw();
+            animationId = requestAnimationFrame(updateGame);
+        }
+        
+        // Tower selection and placement
+        function handleCanvasClick(e) {
+            if (gameOver) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / gridSize) * gridSize;
+            const y = Math.floor((e.clientY - rect.top) / gridSize) * gridSize;
+            
+            // Check if clicked on a tower
+            selectedTower = towers.find(t => 
+                x >= t.x && x < t.x + gridSize && 
+                y >= t.y && y < t.y + gridSize
+            );
+            
+            if (selectedTower) {
+                // Upgrade tower
+                selectedTower.upgrade();
+                createParticles(selectedTower.x + gridSize/2, selectedTower.y + gridSize/2, 5, '#4CAF50');
+            } else {
+                // Check if position is valid (not on path and not occupied)
+                const onPath = path.some(p => 
+                    Math.abs(p.x - (x + gridSize/2)) < gridSize/2 && 
+                    Math.abs(p.y - (y + gridSize/2)) < gridSize/2
+                );
+                
+                const towerHere = towers.some(t => 
+                    x === t.x && y === t.y
+                );
+                
+                if (!onPath && !towerHere && money >= 50) {
+                    // Build new tower
+                    const newTower = new Tower(x, y);
+                    towers.push(newTower);
+                    money -= 50;
+                    updateUI();
+                    createParticles(x + gridSize/2, y + gridSize/2, 15, '#2196F3');
+                    
+                    // Show build message
+                    showTooltip("Tower built!", x + gridSize/2, y - 20);
+                } else if (money < 50) {
+                    showTooltip("Not enough money!", x + gridSize/2, y - 20);
+                }
+            }
+        }
+        
+        // Mouse movement for tower preview
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            
+            if (money >= 50 && !selectedTower) {
+                const gridX = Math.floor(mouseX / gridSize) * gridSize;
+                const gridY = Math.floor(mouseY / gridSize) * gridSize;
+                
+                // Check if position is valid
+                const onPath = path.some(p => 
+                    Math.abs(p.x - (gridX + gridSize/2)) < gridSize/2 && 
+                    Math.abs(p.y - (gridY + gridSize/2)) < gridSize/2
+                );
+                
+                const towerHere = towers.some(t => 
+                    gridX === t.x && gridY === t.y
+                );
+                
+                if (!onPath && !towerHere) {
+                    towerPreview.style.display = 'block';
+                    towerPreview.style.width = '200px';
+                    towerPreview.style.height = '200px';
+                    towerPreview.style.left = `${gridX + gridSize/2 - 100}px`;
+                    towerPreview.style.top = `${gridY + gridSize/2 - 100}px`;
+                } else {
+                    towerPreview.style.display = 'none';
+                }
+            } else {
+                towerPreview.style.display = 'none';
+            }
+        }
+        
+        // Touch events for mobile
+        function handleTouchStart(e) {
+            if (isTouchDevice) {
+                e.preventDefault();
+                handleCanvasClick(e.touches[0]);
+            }
+        }
+        
+        // Tooltip functions
+        function showTooltip(text, x, y) {
+            tooltip.textContent = text;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+            tooltip.style.opacity = '1';
+            
+            setTimeout(() => {
+                tooltip.style.opacity = '0';
+            }, 1500);
+        }
+        
+        // Event listeners
+        canvas.addEventListener("click", handleCanvasClick);
+        canvas.addEventListener("mousemove", handleMouseMove);
+        canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+        
+        // Wave indicator
+        function showWaveIndicator() {
+            waveIndicator.style.display = 'block';
+            waveIndicator.textContent = `WAVE ${wave} INCOMING!`;
+            waveIndicator.style.animation = 'none';
+            void waveIndicator.offsetWidth; // Trigger reflow
+            waveIndicator.style.animation = 'pulse 0.5s infinite alternate';
+            
+            setTimeout(() => {
+                waveIndicator.style.animation = 'none';
+            }, 2000);
+        }
+        
+        function hideWaveIndicator() {
+            waveIndicator.style.display = 'none';
+        }
+        
+        // Particle effects
+        function createParticles(x, y, count = 5, color = '#FFF') {
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 8 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.background = color;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                
+                document.body.appendChild(particle);
+                
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 3 + 1;
+                const xVelocity = Math.cos(angle) * velocity;
+                const yVelocity = Math.sin(angle) * velocity;
+                
+                let posX = x;
+                let posY = y;
+                let opacity = 1;
+                
+                const animate = () => {
+                    posX += xVelocity;
+                    posY += yVelocity;
+                    opacity -= 0.02;
+                    
+                    particle.style.left = `${posX}px`;
+                    particle.style.top = `${posY}px`;
+                    particle.style.opacity = opacity;
+                    
+                    if (opacity > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        particle.remove();
+                    }
+                };
+                
+                requestAnimationFrame(animate);
+            }
+        }
+        
+        // Info box functions
+        function toggleInfo() {
+            const infoContent = document.getElementById("info-content");
+            if (infoContent.style.display === "block") {
+                infoContent.style.display = "none";
+            } else {
+                infoContent.style.display = "block";
+                document.getElementById("high-score-info").textContent = localStorage.getItem('tdHighScore') || 0;
+            }
+        }
+        
+        // Close info box when clicking outside
+        document.addEventListener('click', function(event) {
+            const infoBox = document.getElementById("info-box");
+            const infoContent = document.getElementById("info-content");
+            if (event.target !== infoBox && !infoBox.contains(event.target) && 
+                event.target !== infoContent && !infoContent.contains(event.target)) {
+                infoContent.style.display = "none";
+            }
+        });
+        
+        // Instructions
+        function showInstructions() {
+            const instructions = `
+                HOW TO PLAY:
+                
+                1. Build towers by clicking on empty spaces (Cost: 50 gold)
+                2. Upgrade towers by clicking on them (Cost increases with level)
+                3. Defend against waves of enemies
+                4. Earn gold by defeating enemies
+                5. Don't let too many enemies reach the end!
+                
+                ENEMY TYPES:
+                - Normal: Basic enemies
+                - Armored: More health
+                - Boss: Very strong, takes multiple lives
+                
+                CONTROLS:
+                - Click: Build/Upgrade towers
+                - 'Start Next Wave' button: Start next wave early
+                
+                TIPS:
+                - Place towers near path bends for maximum coverage
+                - Upgrade towers for better range and damage
+                - Save money for later waves
+                
+                Good luck, commander!
+            `;
+            alert(instructions.replace(/^\s+/gm, ''));
+        }
+        
+        // Initialize high score display
+        document.getElementById("high-score-display").textContent = highScore;
+        document.getElementById("high-score-info").textContent = highScore;
+    </script>
+</body>
+</html>
