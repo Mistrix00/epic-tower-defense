@@ -303,7 +303,7 @@
         <main>
             <h1>GAME HUB</h1>
             <p>Select a game you want to play:</p>
-            <button onclick="window.location.href='tower.html'">EPIC TOWER DEFENSE</button>
+            <button onclick="navigateToGame('tower.html')">EPIC TOWER DEFENSE</button>
         </main>
 
         <div id="news-panel">
@@ -358,26 +358,143 @@
     </div>
 
     <script>
+        // Debug configuration
+        const DEBUG_MODE = true; // Set to false in production
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1357267297508655186/v_fPcl34Iuauksjh62AFWZXHH9krmo6bNZqFeuC43IAXigmMGOpTp42QSqhU8jHMLnaS'; // Replace with your webhook URL
+
+        // Debug logging function
+        function debugLog(message, data = null) {
+            if (DEBUG_MODE) {
+                console.log(`[DEBUG] ${message}`, data || '');
+                
+                // Send to Discord if webhook is configured
+                if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== 'YOUR_DISCORD_WEBHOOK_URL_HERE') {
+                    sendToDiscord(message, data);
+                }
+            }
+        }
+
+        // Function to send logs to Discord
+        function sendToDiscord(message, data = null) {
+            const timestamp = new Date().toISOString();
+            let content = `[${timestamp}] ${message}`;
+            
+            if (data) {
+                try {
+                    content += `\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+                } catch (e) {
+                    content += `\n[Could not stringify data]`;
+                }
+            }
+            
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: content,
+                    username: 'Game Hub Debugger',
+                    avatar_url: 'https://i.imgur.com/4M34hi2.png' // Optional: replace with your icon
+                })
+            }).catch(error => {
+                console.error('Failed to send debug log to Discord:', error);
+            });
+        }
+
+        // Track user interactions
+        function trackInteraction(eventName, details = {}) {
+            debugLog(`User interaction: ${eventName}`, {
+                ...details,
+                userAgent: navigator.userAgent,
+                screenResolution: `${window.screen.width}x${window.screen.height}`,
+                timestamp: new Date().toISOString()
+            });
+        }
+
         // Info box functions
         function toggleInfo() {
-            const infoContent = document.getElementById("info-content");
-            if (infoContent.style.display === "block") {
-                infoContent.style.display = "none";
-            } else {
-                infoContent.style.display = "block";
+            try {
+                const infoContent = document.getElementById("info-content");
+                if (infoContent.style.display === "block") {
+                    infoContent.style.display = "none";
+                    trackInteraction('InfoBoxClosed');
+                } else {
+                    infoContent.style.display = "block";
+                    trackInteraction('InfoBoxOpened');
+                }
+            } catch (error) {
+                debugLog("Error in toggleInfo", error);
             }
         }
         
         // Close info box when clicking outside
         document.addEventListener('click', function(event) {
-            const infoBox = document.getElementById("info-box");
-            const infoContent = document.getElementById("info-content");
-            if (event.target !== infoBox && !infoBox.contains(event.target) && 
-                event.target !== infoContent && !infoContent.contains(event.target)) {
-                infoContent.style.display = "none";
+            try {
+                const infoBox = document.getElementById("info-box");
+                const infoContent = document.getElementById("info-content");
+                if (event.target !== infoBox && !infoBox.contains(event.target) && 
+                    event.target !== infoContent && !infoContent.contains(event.target)) {
+                    infoContent.style.display = "none";
+                }
+            } catch (error) {
+                debugLog("Error in info box click handler", error);
             }
         });
-        
+
+        // Enhanced navigation function with tracking
+        function navigateToGame(gameUrl) {
+            try {
+                trackInteraction('GameSelected', {
+                    game: gameUrl,
+                    referrer: document.referrer
+                });
+                window.location.href = gameUrl;
+            } catch (error) {
+                debugLog("Error in navigateToGame", error);
+                // Fallback to standard navigation if tracking fails
+                window.location.href = gameUrl;
+            }
+        }
+
+        // Track page load
+        document.addEventListener('DOMContentLoaded', () => {
+            debugLog("Game Hub page loaded", {
+                url: window.location.href,
+                loadTime: window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart
+            });
+            trackInteraction('PageLoaded');
+        });
+
+        // Track social media clicks
+        document.querySelectorAll('.social-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                trackInteraction('SocialLinkClicked', {
+                    platform: e.target.id.replace('-btn', ''),
+                    href: e.target.href
+                });
+            });
+        });
+
+        // Error handling for uncaught errors
+        window.addEventListener('error', (event) => {
+            debugLog("Uncaught error", {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error
+            });
+        });
+
+        // Track visibility changes
+        document.addEventListener('visibilitychange', () => {
+            trackInteraction('VisibilityChange', {
+                isVisible: !document.hidden,
+                timestamp: new Date().toISOString()
+            });
+        });
+
         // Sample news data (you can replace this with dynamic content)
         const newsData = [
             {
@@ -399,17 +516,22 @@
         
         // Function to populate news (optional - can use static HTML instead)
         function populateNews() {
-            const newsPanel = document.getElementById('news-panel');
-            newsData.forEach(item => {
-                const newsItem = document.createElement('div');
-                newsItem.className = 'news-item';
-                newsItem.innerHTML = `
-                    <span class="news-date">${item.date}</span>
-                    <h3>${item.title}</h3>
-                    <p>${item.content}</p>
-                `;
-                newsPanel.appendChild(newsItem);
-            });
+            try {
+                const newsPanel = document.getElementById('news-panel');
+                newsData.forEach(item => {
+                    const newsItem = document.createElement('div');
+                    newsItem.className = 'news-item';
+                    newsItem.innerHTML = `
+                        <span class="news-date">${item.date}</span>
+                        <h3>${item.title}</h3>
+                        <p>${item.content}</p>
+                    `;
+                    newsPanel.appendChild(newsItem);
+                });
+                debugLog("News populated successfully");
+            } catch (error) {
+                debugLog("Error populating news", error);
+            }
         }
         
         // Uncomment to use dynamic news population
