@@ -1651,34 +1651,162 @@
             }
         });
         
-        // Instructions
+        // Improved Instructions Modal
         function showInstructions() {
-            const instructions = `
-                HOW TO PLAY:
+            // Create modal container
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            modal.style.fontFamily = '"Press Start 2P", cursive';
+            
+            // Create modal content
+            const content = document.createElement('div');
+            content.style.backgroundColor = '#1A1A1A';
+            content.style.padding = '30px';
+            content.style.borderRadius = '15px';
+            content.style.maxWidth = '600px';
+            content.style.width = '90%';
+            content.style.maxHeight = '80vh';
+            content.style.overflowY = 'auto';
+            content.style.border = '4px solid var(--accent)';
+            content.style.boxShadow = '0 0 20px rgba(255, 193, 7, 0.5)';
+            
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '✕';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '15px';
+            closeBtn.style.right = '15px';
+            closeBtn.style.background = 'var(--danger)';
+            closeBtn.style.border = 'none';
+            closeBtn.style.color = 'white';
+            closeBtn.style.borderRadius = '50%';
+            closeBtn.style.width = '30px';
+            closeBtn.style.height = '30px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.fontSize = '16px';
+            closeBtn.style.fontWeight = 'bold';
+            closeBtn.onclick = () => modal.remove();
+            
+            // Create title
+            const title = document.createElement('h2');
+            title.textContent = 'HOW TO PLAY';
+            title.style.color = 'var(--accent)';
+            title.style.textAlign = 'center';
+            title.style.marginBottom = '20px';
+            title.style.fontSize = '1.5rem';
+            title.style.textShadow = '2px 2px 0 var(--secondary)';
+            
+            // Create sections
+            const sections = [
+                {
+                    title: 'GAME OBJECTIVE',
+                    items: [
+                        'Defend your kingdom against endless waves of enemies!',
+                        'Prevent enemies from reaching the end of the path.',
+                        'Survive as long as possible to achieve high scores.'
+                    ]
+                },
+                {
+                    title: 'BASIC MECHANICS',
+                    items: [
+                        'Build towers by clicking on empty spaces (Cost: 50 gold)',
+                        'Upgrade towers by clicking on them (Cost increases with level)',
+                        'Earn gold by defeating enemies',
+                        'Lose lives when enemies reach the end'
+                    ]
+                },
+                {
+                    title: 'ENEMY TYPES',
+                    items: [
+                        '🟥 Normal: Basic enemies (40 gold)',
+                        '🟫 Armored: 50% more health (60 gold)',
+                        '🟪 Boss: 3× health, takes 3 lives (150 gold)'
+                    ]
+                },
+                {
+                    title: 'TOWER STRATEGY',
+                    items: [
+                        'Range increases with each upgrade',
+                        'Damage increases with each upgrade',
+                        'Faster attack speed with each upgrade',
+                        'Place towers near path bends for maximum coverage'
+                    ]
+                },
+                {
+                    title: 'ADVANCED TIPS',
+                    items: [
+                        'Prioritize upgrading over building new towers',
+                        'Save money for difficult waves',
+                        'Focus fire on boss enemies',
+                        'Balance your defenses across the entire path'
+                    ]
+                }
+            ];
+            
+            // Add content to modal
+            content.appendChild(title);
+            
+            sections.forEach(section => {
+                const sectionTitle = document.createElement('h3');
+                sectionTitle.textContent = section.title;
+                sectionTitle.style.color = 'var(--secondary)';
+                sectionTitle.style.margin = '15px 0 10px';
+                sectionTitle.style.fontSize = '0.9rem';
                 
-                1. Build towers by clicking on empty spaces (Cost: 50 gold)
-                2. Upgrade towers by clicking on them (Cost increases with level)
-                3. Defend against waves of enemies
-                4. Earn gold by defeating enemies
-                5. Don't let too many enemies reach the end!
+                const list = document.createElement('ul');
+                list.style.marginLeft = '20px';
+                list.style.listStyleType = 'none';
                 
-                ENEMY TYPES:
-                - Normal: Basic enemies
-                - Armored: More health
-                - Boss: Very strong, takes multiple lives
+                section.items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    li.style.marginBottom = '8px';
+                    li.style.fontSize = '0.7rem';
+                    li.style.lineHeight = '1.5';
+                    list.appendChild(li);
+                });
                 
-                CONTROLS:
-                - Click: Build/Upgrade towers
-                - 'Start Next Wave' button: Start next wave early
-                
-                TIPS:
-                - Place towers near path bends for maximum coverage
-                - Upgrade towers for better range and damage
-                - Save money for later waves
-                
-                Good luck, commander!
-            `;
-            alert(instructions.replace(/^\s+/gm, ''));
+                content.appendChild(sectionTitle);
+                content.appendChild(list);
+            });
+            
+            // Add footer
+            const footer = document.createElement('div');
+            footer.style.textAlign = 'center';
+            footer.style.marginTop = '20px';
+            footer.style.paddingTop = '15px';
+            footer.style.borderTop = '1px solid var(--accent)';
+            
+            const goodLuck = document.createElement('p');
+            goodLuck.textContent = 'Good luck, commander!';
+            goodLuck.style.color = 'var(--accent)';
+            goodLuck.style.fontSize = '0.8rem';
+            
+            footer.appendChild(goodLuck);
+            content.appendChild(footer);
+            
+            // Add close button and content to modal
+            content.appendChild(closeBtn);
+            modal.appendChild(content);
+            
+            // Add modal to body
+            document.body.appendChild(modal);
+            
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
         }
         
         // Initialize high score display
