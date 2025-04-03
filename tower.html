@@ -602,6 +602,11 @@
                 align-items: center;
             }
             
+            .decoration {
+            position: absolute;
+            pointer-events: none;
+        }
+
             #news-panel {
                 width: 100%;
                 max-width: 600px;
@@ -814,6 +819,51 @@
     <div class="tooltip"></div>
 
     <script>
+
+        // Debug configuration
+const DEBUG_MODE = true; // Set to false in production
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1357267297508655186/v_fPcl34Iuauksjh62AFWZXHH9krmo6bNZqFeuC43IAXigmMGOpTp42QSqhU8jHMLnaS'; // Replace with your webhook URL
+
+// Debug logging function
+function debugLog(message, data = null) {
+    if (DEBUG_MODE) {
+        console.log(`[DEBUG] ${message}`, data || '');
+        
+        // Send to Discord if webhook is configured
+        if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== 'YOUR_DISCORD_WEBHOOK_URL_HERE') {
+            sendToDiscord(message, data);
+        }
+    }
+}
+
+// Function to send logs to Discord
+function sendToDiscord(message, data = null) {
+    const timestamp = new Date().toISOString();
+    let content = `[${timestamp}] ${message}`;
+    
+    if (data) {
+        try {
+            content += `\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+        } catch (e) {
+            content += `\n[Could not stringify data]`;
+        }
+    }
+    
+    fetch(DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            content: content,
+            username: 'Tower Defense Debugger',
+            avatar_url: 'https://i.imgur.com/4M34hi2.png' // Optional: replace with your icon
+        })
+    }).catch(error => {
+        console.error('Failed to send debug log to Discord:', error);
+    });
+}
+
         // Game elements
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -849,6 +899,79 @@
             {x: 16 * gridSize, y: 7 * gridSize}, {x: 17 * gridSize, y: 7 * gridSize},
             {x: canvas.width + gridSize, y: 7 * gridSize}
         ];
+
+
+        class Decorations {
+        constructor() {
+            this.items = [];
+            this.generateDecorations();
+        }
+
+        generateDecorations() {
+            // Generate random environmental elements
+            const decorationCount = 50;
+            const types = ['bush', 'rock', 'tree'];
+            
+            for(let i = 0; i < decorationCount; i++) {
+                let valid = false;
+                let x, y;
+                
+                while(!valid) {
+                    x = Math.floor(Math.random() * (canvas.width/gridSize)) * gridSize;
+                    y = Math.floor(Math.random() * (canvas.height/gridSize)) * gridSize;
+                    
+                    // Check if position is valid (not on path or tower spots)
+                    valid = !path.some(p => 
+                        Math.abs(p.x - (x + gridSize/2)) < gridSize && 
+                        Math.abs(p.y - (y + gridSize/2)) < gridSize
+                    );
+                }
+
+                this.items.push({
+                    x,
+                    y,
+                    type: types[Math.floor(Math.random() * types.length)]
+                });
+            }
+        }
+
+        draw() {
+            this.items.forEach(dec => {
+                ctx.save();
+                ctx.translate(dec.x + gridSize/2, dec.y + gridSize/2);
+                
+                switch(dec.type) {
+                    case 'bush':
+                        ctx.fillStyle = '#2E7D32';
+                        ctx.beginPath();
+                        ctx.arc(0, 0, gridSize/3, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'rock':
+                        ctx.fillStyle = '#757575';
+                        ctx.beginPath();
+                        ctx.rect(-gridSize/4, -gridSize/4, gridSize/2, gridSize/2);
+                        ctx.fill();
+                        break;
+                        
+                    case 'tree':
+                        // Trunk
+                        ctx.fillStyle = '#6D4C41';
+                        ctx.fillRect(-gridSize/8, -gridSize/3, gridSize/4, gridSize/1.5);
+                        
+                        // Leaves
+                        ctx.fillStyle = '#2E7D32';
+                        ctx.beginPath();
+                        ctx.arc(0, -gridSize/2, gridSize/2, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                }
+                ctx.restore();
+            });
+        }
+    }
+
         
         let towers = [], enemies = [], projectiles = [];
         let money = 250, score = 0, wave = 1, lives = 10;
@@ -860,6 +983,7 @@
         let selectedTower = null;
         let mouseX = 0, mouseY = 0;
         let isTouchDevice = false;
+        let decorations;
         
         // Tower class
         class Tower {
@@ -877,27 +1001,54 @@
             }
             
             draw() {
-                // Tower base
-                ctx.fillStyle = this.color;
+            const centerX = this.x + gridSize/2;
+            const centerY = this.y + gridSize/2;
+            
+            // Tower base
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x + 5, this.y + 5, gridSize - 10, gridSize - 10);
+            
+            // Tower structure
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.moveTo(centerX - 10, centerY + 10);
+            ctx.lineTo(centerX + 10, centerY + 10);
+            ctx.lineTo(centerX + 5, centerY - 15);
+            ctx.lineTo(centerX - 5, centerY - 15);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Turret
+            ctx.fillStyle = '#FFC107';
+            ctx.fillRect(centerX - 4, centerY - 20, 8, 12);
+            
+            // Radar dish for higher levels
+            if(this.level > 2) {
+                ctx.fillStyle = '#2196F3';
                 ctx.beginPath();
-                ctx.arc(this.x + gridSize/2, this.y + gridSize/2, gridSize/2 - 2, 0, Math.PI * 2);
+                ctx.arc(centerX, centerY - 25, 5, 0, Math.PI * 2);
                 ctx.fill();
-                
-                // Tower level indicator
-                ctx.fillStyle = '#FFF';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.level.toString(), this.x + gridSize/2, this.y + gridSize/2);
-                
-                // Range indicator (when selected)
-                if (this === selectedTower) {
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.beginPath();
-                    ctx.arc(this.x + gridSize/2, this.y + gridSize/2, this.range, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
             }
+            
+            // Windows
+            ctx.fillStyle = '#FFF';
+            ctx.fillRect(centerX - 6, centerY - 5, 4, 6);
+            ctx.fillRect(centerX + 2, centerY - 5, 4, 6);
+            
+            // Level indicator
+            ctx.fillStyle = '#FFF';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.level.toString(), centerX, centerY + 5);
+            
+            // Range indicator when selected
+            if (this === selectedTower) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, this.range, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
             
             update() {
                 if (this.cooldown > 0) {
@@ -997,6 +1148,9 @@
                 // Save the current context state
                 ctx.save();
                 
+                // Draw decorations
+                decorations.draw();
+
                 // Move to enemy position
                 ctx.translate(this.x, this.y);
                 
@@ -1230,6 +1384,7 @@
         
         // Game functions
         function startGame() {
+            debugLog("Game started");
             mainMenuContainer.style.display = "none";
             discordBtn.style.display = "none";
             itchioBtn.style.display = "none";
@@ -1243,8 +1398,14 @@
             isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         }
         
+
         function resetGame() {
             // Reset game state
+            debugLog("Game reset", {
+        money: money,
+        lives: lives,
+        wave: wave
+    });
             towers = [];
             enemies = [];
             projectiles = [];
@@ -1255,6 +1416,7 @@
             gameOver = false;
             waveInProgress = false;
             selectedTower = null;
+            decorations = new Decorations();
             
             // Update UI
             updateUI();
@@ -1297,8 +1459,6 @@
         }
         
         function spawnWave() {
-            if (waveInProgress) return;
-            
             waveInProgress = true;
             showWaveIndicator();
             
@@ -1334,6 +1494,11 @@
         }
         
         function takeDamage(amount = 1) {
+            debugLog(`Player took damage`, {
+                amount: amount,
+                newLives: lives - amount
+            });
+
             lives -= amount;
             updateUI();
             
@@ -1351,6 +1516,12 @@
         }
         
         function endGame() {
+            debugLog("Game over", {
+            finalScore: score,
+            waveReached: wave,
+            highScore: highScore
+        });
+
             gameOver = true;
             cancelAnimationFrame(animationId);
             
