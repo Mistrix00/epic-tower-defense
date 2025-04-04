@@ -304,6 +304,7 @@
             <h1>GAME HUB</h1>
             <p>Select a game you want to play:</p>
             <button onclick="navigateToGame('tower.html')">EPIC TOWER DEFENSE</button>
+            <button onclick="navigateToGame('spaceshooter.html')">SPACE SHOOTER</button>
         </main>
 
         <div id="news-panel">
@@ -359,8 +360,9 @@
 
     <script>
         // Debug configuration
+       // Debug configuration
         const DEBUG_MODE = true; // Set to false in production
-        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1357267297508655186/v_fPcl34Iuauksjh62AFWZXHH9krmo6bNZqFeuC43IAXigmMGOpTp42QSqhU8jHMLnaS'; // Replace with your webhook URL
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1357267297508655186/v_fPcl34Iuauksjh62AFWZXHH9krmo6bNZqFeuC43IAXigmMGOpTp42QSqhU8jHMLnaS'; // Replace with your webhook URL'; // Replace with your webhook URL
 
         // Debug logging function
         function debugLog(message, data = null) {
@@ -374,28 +376,66 @@
             }
         }
 
-        // Function to send logs to Discord
+        // Function to send logs to Discord with embed
         function sendToDiscord(message, data = null) {
-            const timestamp = new Date().toISOString();
-            let content = `[${timestamp}] ${message}`;
-            
+            const embed = {
+                title: '🐞 Debug Log',
+                color: 0xFFA500, // Orange color
+                fields: [
+                    {
+                        name: 'Message',
+                        value: message.substring(0, 1024) || 'No message',
+                        inline: false
+                    }
+                ],
+                timestamp: new Date().toISOString(),
+                footer: {
+                    text: 'Tower Defense Debugger • v1.0.0',
+                    icon_url: 'https://i.imgur.com/4M34hi2.png'
+                },
+                thumbnail: {
+                    url: 'https://cdn-icons-png.flaticon.com/512/753/753346.png'
+                }
+            };
+
+            // Add data field if available
             if (data) {
                 try {
-                    content += `\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+                    const stringData = typeof data === 'object' ? 
+                        JSON.stringify(data, (key, value) => {
+                            if (value instanceof Error) {
+                                return { 
+                                    message: value.message,
+                                    stack: value.stack
+                                };
+                            }
+                            return value;
+                        }, 2).substring(0, 1014) : 
+                        String(data).substring(0, 1014);
+                    
+                    embed.fields.push({
+                        name: 'Additional Data',
+                        value: `\`\`\`json\n${stringData || 'No data'}\n\`\`\``,
+                        inline: false
+                    });
                 } catch (e) {
-                    content += `\n[Could not stringify data]`;
+                    embed.fields.push({
+                        name: 'Data Error',
+                        value: 'Could not stringify data',
+                        inline: false
+                    });
                 }
             }
-            
+
             fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    content: content,
-                    username: 'Game Hub Debugger',
-                    avatar_url: 'https://i.imgur.com/4M34hi2.png' // Optional: replace with your icon
+                    username: 'Tower Defense Bot',
+                    avatar_url: 'https://i.imgur.com/4M34hi2.png',
+                    embeds: [embed]
                 })
             }).catch(error => {
                 console.error('Failed to send debug log to Discord:', error);
